@@ -5,6 +5,25 @@ from hw6code.GeneratorNode     import GeneratorNode
 from hw6code.KinematicChain    import KinematicChain
 from hw5code.TransformHelpers  import *
 
+from rclpy.qos              import QoSProfile, DurabilityPolicy
+from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
+
+# from EE_133a_Project.cube_organizer import CubeOrganizer
+
+
+
+## Convert cube_pos_type number to the center of cube position
+pos_type_to_position = {
+    1: [-0.75, 0.75, 0.25],
+    2: [-0.25, 0.75, 0.25],
+    3: [0.25,  0.75, 0.25],
+    4: [0.75,  0.75, 0.25],
+    5: [-0.75, 0.75, 0.75],
+    6: [-0.25, 0.75, 0.75],
+    7: [0.25,  0.75, 0.75],
+    8: [0.75,  0.75, 0.75]
+}
 
 
 def spline(t, T, p0, pf):
@@ -15,18 +34,6 @@ def spline(t, T, p0, pf):
 
 def compute_pre_post_slice_poses(cube_pos_type, cube_dir_type):
     ## Decide pre_slice_pos and post_slice_pos based on cube_pos_type and cube_dir_type
-
-    ## Convert cube_pos_type number to the center of cube position
-    pos_type_to_position = {
-        1: [-0.75, 0.75, 0.25],
-        2: [-0.25, 0.75, 0.25],
-        3: [0.25,  0.75, 0.25],
-        4: [0.75,  0.75, 0.25],
-        5: [-0.75, 0.75, 0.75],
-        6: [-0.25, 0.75, 0.75],
-        7: [0.25,  0.75, 0.75],
-        8: [0.75,  0.75, 0.75]
-    }
 
     cube_pos = np.array(pos_type_to_position[cube_pos_type]).reshape(3, 1)
     cube_length = 0.25
@@ -68,6 +75,33 @@ def compute_inter_slice_path(start_pos, pre_slice_pos, cur_cycle_time, execution
     return pd, vd
 
 
+def cube_marker(x, y, z, l):
+
+        print(x, ' ', y, ' ', z, ' ', l)
+        # Create the cube marker.
+        marker = Marker()
+        marker.type               = Marker.CUBE
+
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.pose.position.x    = float(x)
+        marker.pose.position.y    = float(y)
+        marker.pose.position.z    = float(z)
+
+        marker.scale.x            = float(l)
+        marker.scale.y            = float(l)
+        marker.scale.z            = float(l)
+
+        marker.color.r            = 1.0
+        marker.color.g            = 1.0
+        marker.color.b            = 1.0
+        marker.color.a            = 1.0     # Transparency
+
+        return marker
+
+
 
 class Trajectory():
     # Initialization.
@@ -104,6 +138,72 @@ class Trajectory():
 
         self.last_post_slice_pos = np.zeros((3, 1))  ## The last finishing position of the robot
 
+        
+
+        ## For cube visualization
+        self.n_cubes       = self.cubes.shape[0]
+        self.pos_types     = self.cubes[:, 0:1]
+        self.dir_types     = self.cubes[:, 1:2]
+        self.arrival_times = self.cubes[:, 2:3]
+
+        self.v = -1
+        self.l = 0.2
+
+        ## Compute all initial positions and initialize markers
+        self.p0s = np.zeros((self.n_cubes, 3))
+        self.cube_markers = []
+
+        for i in range(self.n_cubes):
+            slice_pos = pos_type_to_position[self.pos_types[i, 0]]
+
+            ## x and z positions stay constant
+            x0 = slice_pos[0]
+            z0 = slice_pos[2]
+            y0 = slice_pos[1] - self.v * self.arrival_times[i]
+
+            ## Given arrival times and slice position, we can calculate the initial y position
+            self.p0s[i, 0] = x0
+            self.p0s[i, 1] = y0
+            self.p0s[i, 2] = z0
+
+            self.cube_markers.append(cube_marker(x0, y0, z0, self.l))           
+
+
+        timestamp = node.get_clock().now().to_msg()
+
+        for (i,marker) in enumerate(self.cube_markers):
+            marker.header.stamp       = timestamp
+            marker.header.frame_id    = 'world'
+            marker.ns                 = 'cube'
+            marker.action             = Marker.ADD
+            marker.id                 = i
+
+        self.marker_array = MarkerArray()
+        self.marker_array.markers = self.cube_markers
+
+        # Create a timer to keep calculating/sending commands.
+        self.timer = node.create_timer(1/float(100), self.update)
+        self.dt    = self.timer.timer_period_ns * 1e-9
+        self.t     = 0.0
+        
+
+        quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                             depth=1)
+
+        self.pub = node.create_publisher(
+            MarkerArray, '/visualization_marker_array', quality)
+
+        self.pub.publish(self.marker_array)
+
+
+    def update(self):
+
+        for i in range(self.n_cubes):
+            self.cube_markers[i].pose.position.y += self.v * self.dt
+
+        self.pub.publish(self.marker_array)
+
+
 
     # Declare the joint names.
     def jointnames(self):
@@ -131,11 +231,11 @@ class Trajectory():
         cube_pos_type = cube_cur[0]
         cube_dir_type = cube_cur[1]
 
-        print('t = ', t, 
-            ' Current cube index = ', self.cube_idx, 
-            ' position type = ', cube_pos_type, 
-            ' direction type = ', cube_dir_type, 
-            ' arrival time = ', cube_arrival_time)
+        # print('t = ', t, 
+        #     ' Current cube index = ', self.cube_idx, 
+        #     ' position type = ', cube_pos_type, 
+        #     ' direction type = ', cube_dir_type, 
+        #     ' arrival time = ', cube_arrival_time)
 
 
         if not self.init:
@@ -152,8 +252,8 @@ class Trajectory():
         ## If the next incoming cube has not arrived, we are in pre slice status
         if cube_arrival_time > t:
 
-            print('Inter slice')
-            print('\tself.start_time = ', self.start_time, ' pre_slice_pos = ', list(pre_slice_pos.reshape(-1)))
+            # print('Inter slice')
+            # print('\tself.start_time = ', self.start_time, ' pre_slice_pos = ', list(pre_slice_pos.reshape(-1)))
 
             if t > self.start_time + self.inter_slice_duration:
                 pd = pre_slice_pos
@@ -168,7 +268,7 @@ class Trajectory():
         ## If the next incoming cube has arrived, we are in slicing status
         else:
 
-            print('Slicing')
+            # print('Slicing')
             pd, vd = compute_slice_path(
                 pre_slice_pos, 
                 post_slice_pos, 
@@ -177,7 +277,7 @@ class Trajectory():
             self.p = post_slice_pos
 
 
-        print('pd = ', list(pd.reshape(-1)))
+        # print('pd = ', list(pd.reshape(-1)))
 
         Rd = Reye()
         wd = np.zeros((3,1))
