@@ -107,6 +107,27 @@
 
   <link name="tip"/>
 
+  <!-- all joints after this point add degrees of freedom to the task space and aren't actual robot joints -->
+
+  <joint name="blade-length" type="prismatic">
+    <parent link="tip"/>
+    <child  link="tip-sliding"/>
+    <axis   xyz="0 1 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <!-- I don't think we care about effort. We don't actually want to limit its velocity since it's not a real joint -->
+    <limit  lower="-0.5" upper="0.5" effort="1.0" velocity="1000000"/>
+  </joint>
+  
+  <link name="tip-sliding"/>
+
+  <joint name="blade-roll" type="continuous">
+    <parent link="tip-sliding"/>
+    <child  link="tip-sliding-roll"/>
+    <axis   xyz="0 1 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <link name="tip-sliding-roll"/>
 
   <!-- *************************************************** -->
   <!-- ******************* RVIZ Colors ******************* -->
@@ -616,7 +637,7 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-	<box size="0.10 0.10 0.10"/>
+	<box size="0.10 1.0 0.10"/>
       </geometry>
     </collision>
     <inertial>
@@ -627,6 +648,11 @@
         iyy="0.000120" iyz="0.0"
         izz="0.000120"/>
     </inertial>
+    <visual>
+      <origin         xyz=" 0   0    0"    rpy="0 0 0"/>
+      <geometry> <box size="0.1 1.0 0.1"/> </geometry>
+      <material name="red"/>
+    </visual>
   </link>
 
   <joint name="attach-cube-xp" type="fixed">
