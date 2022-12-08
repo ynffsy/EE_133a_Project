@@ -151,9 +151,9 @@
       <material name="robot-gray"/>
     </visual>
     <collision>
-      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <origin xyz="0 0 0.149" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.298" radius="0.05"/>
       </geometry>
     </collision>
     <inertial>
@@ -176,12 +176,12 @@
       <geometry>
 	<cylinder length="0.2" radius="0.04"/>
       </geometry>
-      <material name="gray"/>
+      <material name="black"/>
     </visual>
     <collision>
       <origin xyz="0 0 0.3" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<cylinder length="0.2" radius="0.04"/>
       </geometry>
     </collision>
     <inertial>
@@ -209,9 +209,9 @@
       <material name="robot-gray"/>
     </visual>
     <collision>
-      <origin xyz="0 0 -0.1" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.149" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.298" radius="0.05"/>
       </geometry>
     </collision>
     <inertial>
@@ -232,15 +232,16 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
       <geometry>
-	<sphere radius="0.08"/>
   <!-- <cylinder length="0.2" radius="0.05"/> -->
+  <sphere radius="0.08"/>
       </geometry>
       <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<!-- <cylinder length="0.2" radius="0.05"/> -->
+  <sphere radius="0.08"/>
       </geometry>
     </collision>
     <inertial>
@@ -268,9 +269,9 @@
       <material name="robot-gray"/>
     </visual>
     <collision>
-      <origin xyz="0 0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.198" radius="0.04"/>
       </geometry>
     </collision>
     <inertial>
@@ -293,12 +294,12 @@
       <geometry>
 	<cylinder length="0.2" radius="0.03"/>
       </geometry>
-      <material name="gray"/>
+      <material name="black"/>
     </visual>
     <collision>
       <origin xyz="0 0.2 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<cylinder length="0.2" radius="0.03"/>
       </geometry>
     </collision>
     <inertial>
@@ -326,9 +327,9 @@
       <material name="robot-gray"/>
     </visual>
     <collision>
-      <origin xyz="0 -0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 -0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.198" radius="0.04"/>
       </geometry>
     </collision>
     <inertial>
@@ -357,7 +358,8 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<!-- <cylinder length="0.2" radius="0.05"/> -->
+  <sphere radius="0.05"/>
       </geometry>
     </collision>
     <inertial>
@@ -385,9 +387,9 @@
       <material name="robot-gray"/>
     </visual>
     <collision>
-      <origin xyz="0 0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.198" radius="0.025"/>
       </geometry>
     </collision>
     <inertial>
@@ -410,12 +412,12 @@
       <geometry>
 	<cylinder length="0.1" radius="0.015"/>
       </geometry>
-      <material name="gray"/>
+      <material name="black"/>
     </visual>
     <collision>
       <origin xyz="0 0.2 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.025"/>
+	<cylinder length="0.1" radius="0.015"/>
       </geometry>
     </collision>
     <inertial>
@@ -443,9 +445,9 @@
       <material name="robot-gray"/>
     </visual>
     <collision>
-      <origin xyz="0 -0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 -0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.01"/>
+	<cylinder length="0.198" radius="0.025"/>
       </geometry>
     </collision>
     <inertial>
@@ -474,7 +476,8 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.025"/>
+	<!-- <cylinder length="0.1" radius="0.025"/> -->
+  <sphere radius="0.04"/>
       </geometry>
     </collision>
     <inertial>
@@ -505,7 +508,8 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.025"/>
+	<!-- <cylinder length="0.1" radius="0.025"/> -->
+  <sphere radius="0.03"/>
       </geometry>
     </collision>
     <inertial>
@@ -535,7 +539,7 @@
     <collision>
       <origin xyz="0 0.05 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.01"/>
+	<cylinder length="0.1" radius="0.015"/>
       </geometry>
     </collision>
     <inertial>
@@ -610,23 +614,23 @@
   <!-- ******************* Gazebo Colors ***************** -->
   <!-- *************************************************** -->
 
-  <gazebo reference="motor1"> <material>Gazebo/Gray</material>  </gazebo>
+  <gazebo reference="motor1"> <material>Gazebo/Black</material>  </gazebo>
   <gazebo reference="motor2"> <material>Gazebo/Gray</material>  </gazebo>
-  <gazebo reference="motor3"> <material>Gazebo/Gray</material>  </gazebo>
+  <gazebo reference="motor3"> <material>Gazebo/Black</material>  </gazebo>
   <gazebo reference="motor4"> <material>Gazebo/Gray</material>  </gazebo>
-  <gazebo reference="motor5"> <material>Gazebo/Gray</material>  </gazebo>
+  <gazebo reference="motor5"> <material>Gazebo/Black</material>  </gazebo>
   <gazebo reference="motor6"> <material>Gazebo/Gray</material>  </gazebo>
   <gazebo reference="motor7"> <material>Gazebo/Gray</material>  </gazebo>
 
-  <gazebo reference="mount1">   <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="mount2">   <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="mount3">   <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="mount4">   <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="mount5">   <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="mount6">   <material>Gazebo/Black</material> </gazebo>
+  <gazebo reference="mount1">   <material>Gazebo/Gray</material> </gazebo>
+  <gazebo reference="mount2">   <material>Gazebo/Gray</material> </gazebo>
+  <gazebo reference="mount3">   <material>Gazebo/Gray</material> </gazebo>
+  <gazebo reference="mount4">   <material>Gazebo/Gray</material> </gazebo>
+  <gazebo reference="mount5">   <material>Gazebo/Gray</material> </gazebo>
+  <gazebo reference="mount6">   <material>Gazebo/Gray</material> </gazebo>
 
-  <gazebo reference="handbase">    <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="palm">        <material>Gazebo/Black</material> </gazebo>
+  <gazebo reference="handbase">    <material>Gazebo/Gray</material> </gazebo>
+  <gazebo reference="palm">        <material>Gazebo/Gray</material> </gazebo>
 
   <gazebo reference="saber-left"> <material>Gazebo/Red</material>     </gazebo>
   <gazebo reference="saber-right"> <material>Gazebo/Blue</material>     </gazebo>
