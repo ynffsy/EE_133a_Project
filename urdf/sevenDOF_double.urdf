@@ -127,6 +127,7 @@
 
   <material name="orange">   <color rgba="1.00 0.65 0.00 1"/>  </material>
 
+  <material name="robot-gray">   <color rgba="0.9 0.9 0.9 1"/>  </material>
   <material name="saber-blue">   <color rgba="0.27 0.443 0.749 1"/>  </material>
   <material name="saber-red">   <color rgba="0.545 0.176 0.188 1"/>  </material>
 
@@ -143,11 +144,11 @@
   </joint>
   <link name="mount1">
     <visual>
-      <origin xyz="0 0 0.1" rpy="0 0 0"/>
+      <origin xyz="0 0 0.149" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.298" radius="0.05"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0 0.1" rpy="0 0 0"/>
@@ -173,7 +174,7 @@
     <visual>
       <origin xyz="0 0 0.3" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<cylinder length="0.2" radius="0.04"/>
       </geometry>
       <material name="gray"/>
     </visual>
@@ -201,11 +202,11 @@
   </joint>
   <link name="mount2">
     <visual>
-      <origin xyz="0 0 -0.1" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.149" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.298" radius="0.05"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0 -0.1" rpy="0 0 0"/>
@@ -231,9 +232,10 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<sphere radius="0.08"/>
+  <!-- <cylinder length="0.2" radius="0.05"/> -->
       </geometry>
-      <material name="gray"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
@@ -259,11 +261,11 @@
   </joint>
   <link name="mount3">
     <visual>
-      <origin xyz="0 0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.198" radius="0.04"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0.1 0" rpy="1.5708 0 0"/>
@@ -289,7 +291,7 @@
     <visual>
       <origin xyz="0 0.2 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<cylinder length="0.2" radius="0.03"/>
       </geometry>
       <material name="gray"/>
     </visual>
@@ -317,11 +319,11 @@
   </joint>
   <link name="mount4">
     <visual>
-      <origin xyz="0 -0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 -0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.198" radius="0.04"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 -0.1 0" rpy="1.5708 0 0"/>
@@ -347,9 +349,10 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.05"/>
+	<!-- <cylinder length="0.2" radius="0.05"/> -->
+  <sphere radius="0.05"/>
       </geometry>
-      <material name="gray"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
@@ -375,11 +378,11 @@
   </joint>
   <link name="mount5">
     <visual>
-      <origin xyz="0 0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.02"/>
+	<cylinder length="0.198" radius="0.025"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0.1 0" rpy="1.5708 0 0"/>
@@ -405,7 +408,7 @@
     <visual>
       <origin xyz="0 0.2 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.025"/>
+	<cylinder length="0.1" radius="0.015"/>
       </geometry>
       <material name="gray"/>
     </visual>
@@ -433,11 +436,11 @@
   </joint>
   <link name="mount6">
     <visual>
-      <origin xyz="0 -0.1 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 -0.099 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.2" radius="0.01"/>
+	<cylinder length="0.198" radius="0.025"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 -0.1 0" rpy="1.5708 0 0"/>
@@ -463,9 +466,10 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.025"/>
+	<!-- <cylinder length="0.1" radius="0.025"/> -->
+  <sphere radius="0.04"/>
       </geometry>
-      <material name="gray"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -493,9 +497,10 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.025"/>
+	<!-- <cylinder length="0.1" radius="0.025"/> -->
+  <sphere radius="0.03"/>
       </geometry>
-      <material name="gray"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 1.5708 0"/>
@@ -523,9 +528,9 @@
     <visual>
       <origin xyz="0 0.05 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.01"/>
+	<cylinder length="0.1" radius="0.015"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <collision>
       <origin xyz="0 0.05 0" rpy="1.5708 0 0"/>
@@ -551,9 +556,9 @@
     <visual>
       <origin xyz="0 0.1 0" rpy="0 1.5708 0"/>
       <geometry>
-	<cylinder length="0.1" radius="0.01"/>
+	<cylinder length="0.1" radius="0.015"/>
       </geometry>
-      <material name="black"/>
+      <material name="robot-gray"/>
     </visual>
     <inertial>
       <origin xyz="0 0.1 0" rpy="0 1.5708 0"/>
@@ -565,66 +570,35 @@
     </inertial>
   </link>
 
-  <joint name="attach-leftfinger" type="fixed">
-    <parent link="link7"/>
-    <child  link="leftfinger"/>
-  </joint>
-  <link name="leftfinger">
-    <visual>
-      <origin xyz="-0.05 0.14 0" rpy="1.5708 0 0"/>
-      <geometry>
-	<cylinder length="0.08" radius="0.01"/>
-      </geometry>
-      <material name="black"/>
-    </visual>
-    <inertial>
-      <origin xyz="-0.05 0.14 0" rpy="1.5708 0 0"/>
-      <mass value="0.05"/>
-      <inertia
-        ixx="0.000022" ixy="0.0" ixz="0.0"
-        iyy="0.000022" iyz="0.0"
-        izz="0.000002"/>
-    </inertial>
-  </link>
 
-  <joint name="attach-rightfinger" type="fixed">
-    <parent link="link7"/>
-    <child  link="rightfinger"/>
-  </joint>
-  <link name="rightfinger">
-    <visual>
-      <origin xyz="0.05 0.14 0" rpy="1.5708 0 0"/>
-      <geometry>
-	<cylinder length="0.08" radius="0.01"/>
-      </geometry>
-      <material name="black"/>
-    </visual>
-    <inertial>
-      <origin xyz="0.05 0.14 0" rpy="1.5708 0 0"/>
-      <mass value="0.05"/>
-      <inertia
-        ixx="0.000022" ixy="0.0" ixz="0.0"
-        iyy="0.000022" iyz="0.0"
-        izz="0.000002"/>
-    </inertial>
-  </link>
 
   <!-- Lightsaber visualizations  -->
 
-
-  <!-- *** Cube: Six sides *** -->
-
-  <joint name="attach-saber" type="fixed">
-    <parent link="palm"/>
-    <child  link="saber"/>
+  <joint name="attach-saber-left" type="fixed">
+    <parent link="tip"/>
+    <child  link="saber-left"/>
   </joint>
-  <link name="saber">
+  <link name="saber-left">
     <visual>
-      <origin xyz="0 0.6 0" rpy="1.57 0 0"/>
+      <origin xyz="-0.5 -0.4 0" rpy="0 1.57 0"/>
       <geometry>
 	      <cylinder length="1.0" radius="0.01"/>
       </geometry>
-      <material name="saber-red"/>
+      <material name="red"/>
+    </visual>
+  </link>
+
+  <joint name="attach-saber-right" type="fixed">
+    <parent link="tip"/>
+    <child  link="saber-right"/>
+  </joint>
+  <link name="saber-right">
+    <visual>
+      <origin xyz="0.5 -0.4 0" rpy="0 1.57 0"/>
+      <geometry>
+	      <cylinder length="1.0" radius="0.01"/>
+      </geometry>
+      <material name="blue"/>
     </visual>
   </link>
 
@@ -653,9 +627,8 @@
 
   <gazebo reference="handbase">    <material>Gazebo/Black</material> </gazebo>
   <gazebo reference="palm">        <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="leftfinger">  <material>Gazebo/Black</material> </gazebo>
-  <gazebo reference="rightfinger"> <material>Gazebo/Black</material> </gazebo>
 
-  <gazebo reference="saber"> <material>Gazebo/Red</material>     </gazebo>
+  <gazebo reference="saber-left"> <material>Gazebo/Red</material>     </gazebo>
+  <gazebo reference="saber-right"> <material>Gazebo/Blue</material>     </gazebo>
 
 </robot>
