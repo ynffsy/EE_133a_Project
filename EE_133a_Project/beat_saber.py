@@ -84,6 +84,11 @@ def compute_inter_slice_w(slice1_perp_axis, slice2_perp_axis, cur_cycle_time, ex
     when we suddenly switch
     '''
     
+    # if the dot product is < 0, then the two axes are >90deg apart, so just flip
+    # the second one to fix this
+    if np.dot(slice1_perp_axis.T, slice2_perp_axis)[0,0] < 0:
+    	slice2_perp_axis = -slice2_perp_axis
+    	
     # find axis to rotate from one to the other, and angle to rotate through
     rot_axis = cross(slice1_perp_axis, slice2_perp_axis)
     
@@ -235,8 +240,14 @@ class Trajectory():
         # this one is 1|R_0 which we need to go from frame 0 to 1
         task_R_frame_10 = task_R_frame_01.T
 
+        tip_z = self.chain.Rtip()[:,2:3]
+        # if the dot product is < 0, we're more than 90deg off, which means it'll
+        # be easier to push towards the negative of the perpendicular axis
+        # (it doesn't actually matter since we just care that it's parallel)
+        if np.dot(tip_z.T, slice_perp_axis)[0,0] < 0:
+            slice_perp_axis = -slice_perp_axis
         # find rotation error with cross product of tip z and our new z axis
-        Rerr = cross(self.chain.Rtip()[:,2:3], slice_perp_axis)
+        Rerr = cross(tip_z, slice_perp_axis)
 
         # add it to desired w and then transform into new frame
         new_w = wd + self.lam * Rerr
