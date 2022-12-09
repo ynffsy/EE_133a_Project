@@ -75,6 +75,7 @@ def compute_slice_perp_axis(pre_slice_pos, post_slice_pos):
     '''
     slice_perp_axis = cross(post_slice_pos - pre_slice_pos, ey())
     slice_perp_axis /= np.linalg.norm(slice_perp_axis)
+    
     return slice_perp_axis
 
 def compute_inter_slice_w(slice1_perp_axis, slice2_perp_axis, cur_cycle_time, execution_time):
@@ -83,13 +84,14 @@ def compute_inter_slice_w(slice1_perp_axis, slice2_perp_axis, cur_cycle_time, ex
     when we suddenly switch
     '''
     
-    # if they're equal the cross product won't work and we should just stay at the same
-    # value the whole time
-    if (slice1_perp_axis == slice2_perp_axis).all():
-        return slice1_perp_axis, np.zeros((3,1))
-    
     # find axis to rotate from one to the other, and angle to rotate through
     rot_axis = cross(slice1_perp_axis, slice2_perp_axis)
+    
+    # if they're parallel the cross product won't work and we should just stay at the same
+    # value the whole time
+    if np.linalg.norm(rot_axis) == 0:
+        return slice1_perp_axis, np.zeros((3,1))
+    
     rot_angle = np.arcsin(np.linalg.norm(rot_axis))
     rot_axis /= np.linalg.norm(rot_axis)
     
@@ -116,7 +118,7 @@ class Trajectory():
         self.prev_slice_perp_axis = ez() 
         self.chain.setjoints(self.q)
         self.lam = 10
-        self.gamma = 0.01
+        self.gamma = 0.001
 
         self.init = True               ## Tracking if have performed one slice or not
 
@@ -192,7 +194,7 @@ class Trajectory():
                 pd = pre_slice_pos
                 vd = np.zeros((3, 1))
                 # keep axis steady at the value for this slice
-                slice_perp_axis = compute_slice_perp_axis(post_slice_pos - pre_slice_pos, ey())
+                slice_perp_axis = compute_slice_perp_axis(pre_slice_pos, post_slice_pos)
                 wd = np.zeros((3,1))
             else:
                 pd, vd = compute_inter_slice_path(
@@ -217,7 +219,7 @@ class Trajectory():
                 post_slice_pos, 
                 cur_cycle_time=t - cube_arrival_time, 
                 execution_time=self.slice_duration)
-            slice_perp_axis = compute_slice_perp_axis(post_slice_pos - pre_slice_pos, ey())
+            slice_perp_axis = compute_slice_perp_axis(pre_slice_pos, post_slice_pos)
             wd = np.zeros((3,1))
             self.p = post_slice_pos
             self.prev_slice_perp_axis = slice_perp_axis
@@ -249,13 +251,6 @@ class Trajectory():
         #xdot = np.vstack((vd, wd))
         perr = ep(pd, self.chain.ptip())
         J = np.vstack((self.chain.Jv(), Jw_1))
-        
-        # create secondary task to push the robot back towards identity rotation
-        # to make its movement a bit more reasonable
-        secondary_w = self.lam * eR(Reye(), self.chain.Rtip())
-        secondary_qdot = np.linalg.pinv(self.chain.Jw()) @ secondary_w
-        # also push the blade slider towards the middle so we tend to slice using the middle of the blade
-        secondary_qdot = secondary_qdot + self.lam * np.array([0,0,0,0,0,0,0,-self.q[7,0],0]).reshape((-1,1))
 
         # qdot = J_pinv @ (xdot + self.lam * err)
 
@@ -273,20 +268,32 @@ class Trajectory():
                 print(f"[DEBUG] bad slider position {(self.q + dt*qdot)[7]}, limiting joint with weight {weight}")
             ## Use weighted inverse to account for the case where target position is unreachable
             # weight joints so that we heavily prefer using the fake joints if possible 
-            W = np.diag(1/np.array([1,1,1,1,1,1,1,weight,1]) ** 2)
+            W = np.diag(1/np.array([128,128,128,128,128,128,128,weight,1]) ** 2)
             Winv = np.linalg.inv(W)
-            JW = J @ Winv
-            u, s, vT = np.linalg.svd(JW, full_matrices = False)
+            J_weighted_inv = W @ J.T @ np.linalg.inv(J @ W @ J.T)
+            
+            u, s, vT = np.linalg.svd(J_weighted_inv, full_matrices = False)
             # apply gamma to s values to avoid singularity
-            #s = s/(s**2 + self.gamma**2)
-            J_weighted_inv = J.T @ np.linalg.inv(J @ W @ J.T + np.eye(5)*self.gamma)
-            # Moore penrose inverse
-            # J_weighted_inv = vT.T @ np.diag(s) @ u.T
+            # since this is already an inverse, we have already inverted the s values,
+            # so this formula is a little bit different but notice for small values it's ~s
+            s = s/(1 + (s**2) * (self.gamma**2))
+            J_weighted_inv = u @ np.diag(s) @ vT
+        
+            # create secondary task to push the robot back towards identity rotation
+            # to make its movement a bit more reasonable
+            secondary_w = self.lam * eR(Reye(), self.chain.Rtip())
+            Jw = self.chain.Jw()
+            # use the joint weighting here too so the secondary task will also eventually
+            # fit blade slider motion in the limits
+            secondary_qdot = W @ Jw.T @ np.linalg.inv(Jw @ W @ Jw.T) @ secondary_w
+            # also push the blade slider towards the middle so we tend to slice using the middle of the blade
+            secondary_qdot = secondary_qdot + self.lam * np.array([0,0,0,0,0,0,0,-self.q[7,0],0]).reshape((-1,1))
+            
             # find qdot for primary velocity plus secondary task in null space
-            qdot = (W @ J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1))
+            qdot = (J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1))
                 + (np.eye(9) - J_weighted_inv @ J) @ secondary_qdot)
-            print(J @ qdot)
-            print(np.vstack((vd + self.lam * perr, new_w_1)))
+            #print(J @ W @ J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1)))
+            #print(np.vstack((vd + self.lam * perr, new_w_1)))
             #    
             
             
