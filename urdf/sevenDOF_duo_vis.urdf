@@ -99,35 +99,67 @@
 
   <link name="wrist"/>
 
-  <joint name="final" type="fixed">
+  <joint name="final-left" type="fixed">
     <parent link="link7"/>
-    <child  link="tip"/>
-    <origin xyz="0 0.5 0" rpy="0 0 0"/>
+    <child  link="tip-left"/>
+    <origin xyz="-0.5 0.1 0" rpy="0 0 0"/>
   </joint>
 
-  <link name="tip"/>
+  <link name="tip-left"/>
+
+  <!-- <joint name="final-right" type="fixed">
+    <parent link="link7"/>
+    <child  link="tip-right"/>
+    <origin xyz="0.5 0.1 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="tip-right"/> -->
 
   <!-- all joints after this point add degrees of freedom to the task space and aren't actual robot joints -->
 
-  <joint name="blade-length" type="prismatic">
-    <parent link="tip"/>
-    <child  link="tip-sliding"/>
-    <axis   xyz="0 1 0"/>
+  <joint name="blade-length-left" type="prismatic">
+    <parent link="tip-left"/>
+    <child  link="tip-sliding-left"/>
+    <axis   xyz="1 0 0"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <!-- I don't think we care about effort. We don't actually want to limit its velocity since it's not a real joint -->
     <limit  lower="-0.5" upper="0.5" effort="1.0" velocity="1000000"/>
   </joint>
   
-  <link name="tip-sliding"/>
+  <link name="tip-sliding-left"/>
 
-  <joint name="blade-roll" type="continuous">
-    <parent link="tip-sliding"/>
-    <child  link="tip-sliding-roll"/>
-    <axis   xyz="0 1 0"/>
+  <joint name="blade-roll-left" type="continuous">
+    <parent link="tip-sliding-left"/>
+    <child  link="tip-sliding-roll-left"/>
+    <axis   xyz="1 0 0"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
   
-  <link name="tip-sliding-roll"/>
+  <link name="tip-sliding-roll-left"/>
+
+  <joint name="blade-length-right" type="prismatic">
+    <parent link="tip-sliding-roll-left"/>
+    <child  link="tip-sliding-right"/>
+    <axis   xyz="1 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <limit  lower="-0.5" upper="0.5" effort="1.0" velocity="1000000"/>
+  </joint>
+  
+  <link name="tip-sliding-right"/>
+
+  <joint name="blade-roll-right" type="continuous">
+    <parent link="tip-sliding-right"/>
+    <child  link="tip-sliding-roll-right"/>
+    <axis   xyz="1 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <link name="tip-sliding-roll-right"/>
+
+
+  
+
+
+
 
   <!-- *************************************************** -->
   <!-- ******************* RVIZ Colors ******************* -->
@@ -551,16 +583,16 @@
   </joint>
   <link name="handbase">
     <visual>
-      <origin xyz="0 0.02 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 0.05 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.04" radius="0.015"/>
+	<cylinder length="0.1" radius="0.015"/>
       </geometry>
       <material name="robot-gray"/>
     </visual>
     <collision>
-      <origin xyz="0 0.02 0" rpy="1.5708 0 0"/>
+      <origin xyz="0 0.05 0" rpy="1.5708 0 0"/>
       <geometry>
-	<cylinder length="0.04" radius="0.015"/>
+	<cylinder length="0.1" radius="0.015"/>
       </geometry>
     </collision>
     <inertial>
@@ -573,15 +605,39 @@
     </inertial>
   </link>
 
+  <joint name="attach-palm" type="fixed">
+    <parent link="link7"/>
+    <child  link="palm"/>
+  </joint>
+  <link name="palm">
+    <visual>
+      <origin xyz="0 0.1 0" rpy="0 1.5708 0"/>
+      <geometry>
+	<cylinder length="0.1" radius="0.015"/>
+      </geometry>
+      <material name="robot-gray"/>
+    </visual>
+    <inertial>
+      <origin xyz="0 0.1 0" rpy="0 1.5708 0"/>
+      <mass value="0.05"/>
+      <inertia
+        ixx="0.000043" ixy="0.0" ixz="0.0"
+        iyy="0.000043" iyz="0.0"
+        izz="0.000003"/>
+    </inertial>
+  </link>
+
+
+
   <!-- Lightsaber visualizations  -->
 
-  <joint name="attach-saber" type="fixed">
-    <parent link="tip"/>
-    <child  link="saber"/>
+  <joint name="attach-saber-left" type="fixed">
+    <parent link="tip-left"/>
+    <child  link="saber-left"/>
   </joint>
-  <link name="saber">
+  <link name="saber-left">
     <visual>
-      <origin xyz="0 0 0" rpy="1.57 0 0"/>
+      <origin xyz="0 0 0" rpy="0 1.57 0"/>
       <geometry>
 	      <cylinder length="1.0" radius="0.01"/>
       </geometry>
@@ -589,7 +645,49 @@
     </visual>
   </link>
 
-  
+  <joint name="attach-saber-right" type="fixed">
+    <parent link="tip-left"/>
+    <child  link="saber-right"/>
+  </joint>
+  <link name="saber-right">
+    <visual>
+      <origin xyz="1 0 0" rpy="0 1.57 0"/>
+      <geometry>
+	      <cylinder length="1.0" radius="0.01"/>
+      </geometry>
+      <material name="right"/>
+    </visual>
+  </link>
+
+  <!-- Virtual joint visualizations -->
+
+  <joint name="attach-vjoint-left" type="fixed">
+    <parent link="tip-sliding-roll-left"/>
+    <child  link="vjoint-left"/>
+  </joint>
+  <link name="vjoint-left">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+	      <cylinder length="0.2" radius="0.03"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+  </link>
+
+  <joint name="attach-vjoint-right" type="fixed">
+    <parent link="tip-sliding-roll-right"/>
+    <child  link="vjoint-right"/>
+  </joint>
+  <link name="vjoint-right">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+	      <cylinder length="0.2" radius="0.03"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+  </link>
 
 
   <!-- *** Targets *** -->
@@ -742,11 +840,11 @@
   <!-- ******************* Gazebo Colors ***************** -->
   <!-- *************************************************** -->
 
-  <gazebo reference="motor1"> <material>Gazebo/Black</material> </gazebo>
+  <gazebo reference="motor1"> <material>Gazebo/Black</material>  </gazebo>
   <gazebo reference="motor2"> <material>Gazebo/Gray</material>  </gazebo>
-  <gazebo reference="motor3"> <material>Gazebo/Black</material> </gazebo>
+  <gazebo reference="motor3"> <material>Gazebo/Black</material>  </gazebo>
   <gazebo reference="motor4"> <material>Gazebo/Gray</material>  </gazebo>
-  <gazebo reference="motor5"> <material>Gazebo/Black</material> </gazebo>
+  <gazebo reference="motor5"> <material>Gazebo/Black</material>  </gazebo>
   <gazebo reference="motor6"> <material>Gazebo/Gray</material>  </gazebo>
   <gazebo reference="motor7"> <material>Gazebo/Gray</material>  </gazebo>
 
@@ -757,8 +855,11 @@
   <gazebo reference="mount5">   <material>Gazebo/Gray</material> </gazebo>
   <gazebo reference="mount6">   <material>Gazebo/Gray</material> </gazebo>
 
-  <gazebo reference="handbase"> <material>Gazebo/Gray</material> </gazebo>
-  <gazebo reference="saber">    <material>Gazebo/Blue</material> </gazebo>
+  <gazebo reference="handbase">    <material>Gazebo/Gray</material> </gazebo>
+  <gazebo reference="palm">        <material>Gazebo/Gray</material> </gazebo>
+
+  <gazebo reference="saber-left"> <material>Gazebo/Red</material>     </gazebo>
+  <gazebo reference="saber-right"> <material>Gazebo/Blue</material>     </gazebo>
 
   <!-- <gazebo reference="target1">    <material>Gazebo/Orange</material>  </gazebo>
   <gazebo reference="target2">    <material>Gazebo/Orange</material>  </gazebo>
@@ -768,6 +869,5 @@
   <gazebo reference="target6">    <material>Gazebo/Orange</material>  </gazebo>
   <gazebo reference="target7">    <material>Gazebo/Orange</material>  </gazebo>
   <gazebo reference="target8">    <material>Gazebo/Orange</material>  </gazebo> -->
-
 
 </robot>

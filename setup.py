@@ -24,7 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'beat_saber = EE_133a_Project.beat_saber:main'
+            'beat_saber = EE_133a_Project.beat_saber:main',
+            'beat_saber_duo = EE_133a_Project.beat_saber_duo:main'
         ],
     },
 )

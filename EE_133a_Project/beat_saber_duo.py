@@ -116,9 +116,10 @@ class Trajectory():
     # Initialization.
     def __init__(self, node):
         # Set up the kinematic chain object.
-        self.chain = KinematicChain(node, 'world', 'tip-sliding-roll', self.jointnames())
+        # self.chain = KinematicChain(node, 'world', 'tip-sliding-roll-left', self.jointnames_left())
+        self.chain = KinematicChain(node, 'world', 'tip-sliding-roll-right', self.jointnames())
 
-        self.q0 = np.radians(np.array([0, 90, 0, -90, 0, 0, 0, 0, 0]).reshape((-1,1)))
+        self.q0 = np.radians(np.array([0, 90, 0, -90, 0, 0, 0, 0, 0, 0, 0]).reshape((-1,1)))
         self.p0 = np.array([0.0, 0.55, 1.0]).reshape((-1,1))
         self.R0 = Reye()
 
@@ -131,12 +132,12 @@ class Trajectory():
         self.lam2 = 10
         self.lam3 = 10
         self.gamma = 0.1
-        self.cumulative_qdot = np.zeros((9, 1))
+        self.cumulative_qdot = np.zeros((11, 1))
 
         self.init = True               ## Tracking if have performed one slice or not
 
         self.slice_duration = 0.5      ## Time duration to perform a slice. This should depend on cube velocity
-        self.inter_slice_duration = 1.5  ## Time duration to move from a post slice pos to the pre slice pos of the next cube  
+        self.inter_slice_duration = 2  ## Time duration to move from a post slice pos to the pre slice pos of the next cube  
         self.start_time = 0            ## Start time of targetting each cube. Set to 0 or the previous slice's end time
         self.cube_idx = 0              ## The index of the cube that we are going to slice next
 
@@ -177,7 +178,9 @@ class Trajectory():
 
     # Declare the joint names.
     def jointnames(self):
-        return ['theta1', 'theta2', 'theta3', 'theta4', 'theta5', 'theta6', 'theta7', 'blade-length', 'blade-roll']
+        return ['theta1', 'theta2', 'theta3', 'theta4', 'theta5', 'theta6', 'theta7', 
+            'blade-length-left', 'blade-roll-left',
+            'blade-length-right', 'blade-roll-right']
 
     # Evaluate at the given time.  This was last called (dt) ago.
     def evaluate(self, t, dt):
@@ -200,12 +203,14 @@ class Trajectory():
 
         cube_pos_type = cube_cur[0]
         cube_dir_type = cube_cur[1]
+        cube_blade_type = cube_cur[3]
 
         # print('t = ', t, 
         #     ' Current cube index = ', self.cube_idx, 
         #     ' position type = ', cube_pos_type, 
         #     ' direction type = ', cube_dir_type, 
-        #     ' arrival time = ', cube_arrival_time)
+        #     ' arrival time = ', cube_arrival_time
+        #     ' blade type = ', cube_blade_type)
 
 
         if not self.init:
@@ -248,7 +253,6 @@ class Trajectory():
 
         ## If the next incoming cube has arrived, we are in slicing status
         else:
-
             print('Slicing')
             pd, vd = compute_slice_path(
                 pre_slice_pos, 
@@ -259,6 +263,33 @@ class Trajectory():
             wd = np.zeros((3,1))
             self.p = post_slice_pos
             self.prev_slice_perp_axis = slice_perp_axis
+
+
+        ## Differentiate the tip and everything about it based on the blade type (color) of the next cube
+        Jv_trimed = self.chain.Jv()
+        Jw_trimed = self.chain.Jw()
+        q_trimed = np.copy(self.q)
+        
+        if cube_blade_type == 0:
+            transform_data = self.chain.data.T
+            Rtip = R_from_T(transform_data[-3])
+            ptip = p_from_T(transform_data[-3])
+
+            Jv_trimed = np.delete(Jv_trimed, [9, 10], axis=1)
+            Jw_trimed = np.delete(Jw_trimed, [9, 10], axis=1)
+            q_trimed = np.delete(q_trimed, [9, 10]).reshape(9, 1)
+
+        else:
+            Rtip = self.chain.Rtip()
+            ptip = self.chain.ptip()
+
+            Jv_trimed = np.delete(Jv_trimed, [7, 8], axis=1)
+            Jw_trimed = np.delete(Jw_trimed, [7, 8], axis=1)
+            q_trimed = np.delete(q_trimed, [7, 8]).reshape(9, 1)
+
+        if q_trimed[7] < -0.5 or q_trimed[7] > 0.5:
+                q_trimed[7] = 0
+        
 
         # print('pd = ', list(pd.reshape(-1)))
 
@@ -272,7 +303,7 @@ class Trajectory():
         task_R_frame_10 = task_R_frame_01.T
 
         # find rotation error with cross product of tip z and our new z axis
-        Rerr = cross(self.chain.Rtip()[:,2:3], slice_perp_axis)
+        Rerr = cross(Rtip[:,2:3], slice_perp_axis)
 
         # add it to desired w and then transform into new frame
         new_w = wd + self.lam * Rerr
@@ -281,12 +312,12 @@ class Trajectory():
         new_w_1 = (task_R_frame_10 @ new_w)[:2,:]
 
         # transform Jw into the new frame and cut off the bottom row we don't care about
-        Jw_1 = (task_R_frame_10 @ self.chain.Jw())[:2,:]
+        Jw_1 = (task_R_frame_10 @ Jw_trimed)[:2,:]
 
-        #err = np.vstack((ep(pd, self.chain.ptip()), eR(Rd, self.chain.Rtip())))
+        #err = np.vstack((ep(pd, ptip), eR(Rd, Rtip)))
         #xdot = np.vstack((vd, wd))
-        perr = ep(pd, self.chain.ptip())
-        J = np.vstack((self.chain.Jv(), Jw_1))
+        perr = ep(pd, ptip)
+        J = np.vstack((Jv_trimed, Jw_1))
 
         # qdot = J_pinv @ (xdot + self.lam * err)
 
@@ -299,14 +330,17 @@ class Trajectory():
         # weight limited joint more and more heavily until it remains inside limits
         weight = 1
         qdot = None
-        while qdot is None or not(-0.5 < (self.q + dt*qdot)[7] < 0.5):
+        while qdot is None or not(-0.5 < (q_trimed + dt*qdot)[7] < 0.5):
             if not (qdot is None):
-                print(f"[DEBUG] bad slider position {(self.q + dt*qdot)[7]}, limiting joint with weight {weight}")
+                print(f"[DEBUG] bad slider position {(q_trimed + dt*qdot)[7]}, limiting joint with weight {weight}")
             ## Use weighted inverse to account for the case where target position is unreachable
             # weight joints so that we heavily prefer using the fake joints if possible 
-            W = np.diag(1/np.array([256,256,128,128,128,128,128,weight,1]) ** 2)
+            W = np.diag(1/np.array([256,256,128,128,1,128,128,weight,1]) ** 2)
             Winv = np.linalg.inv(W)
             J_weighted_inv = W @ J.T @ np.linalg.inv(J @ W @ J.T)
+            print(J)
+            print(W)
+            print(J_weighted_inv)
             
             u, s, vT = np.linalg.svd(J_weighted_inv, full_matrices = False)
             # apply gamma to s values to avoid singularity
@@ -317,34 +351,49 @@ class Trajectory():
         
             # create secondary task to push the robot back towards identity rotation
             # to make its movement a bit more reasonable
-            secondary_w = self.lam2 * eR(Reye(), self.chain.Rtip())
-            Jw = self.chain.Jw()
+            secondary_w = self.lam2 * eR(Reye(), Rtip)
+            Jw = Jw_trimed
             # use the joint weighting here too so the secondary task will also eventually
             # fit blade slider motion in the limits
             secondary_qdot = W @ Jw.T @ np.linalg.inv(Jw @ W @ Jw.T) @ secondary_w
             # also push the blade slider towards the middle so we tend to slice using the middle of the blade
-            secondary_qdot = secondary_qdot + self.lam3 * np.array([0,0,0,0,0,0,0,-self.q[7,0],0]).reshape((-1,1))
+            secondary_qdot = secondary_qdot + self.lam3 * np.array([0,0,0,0,0,0,0,-q_trimed[7,0],0]).reshape((-1,1))
             
             # find qdot for primary velocity plus secondary task in null space
             qdot = (J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1))
                 + (np.eye(9) - J_weighted_inv @ J) @ secondary_qdot)
             #print(J @ W @ J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1)))
             #print(np.vstack((vd + self.lam * perr, new_w_1)))
-            #    
-            
             
             weight *= 2
 
-        print(qdot)
+        if cube_arrival_time > t + 0.5:
+            qdot[4] = 20
 
-        self.q += dt * qdot
+
+        q_trimed += dt * qdot
+        self.q[0:7] = q_trimed[0:7]
+
+        if cube_blade_type == 0:
+            self.q[7:9] = q_trimed[7:9]
+            self.q[9:11] = 0
+            qdot = np.concatenate((qdot, np.zeros((2, 1))), axis=0)
+
+        else:
+            self.q[7:8] = 1
+            self.q[8:9] = 0
+            self.q[9:11] = q_trimed[7:9]
+            qdot = np.concatenate((qdot[0:7, :], np.zeros((2, 1)), qdot[7:9, :]), axis=0)
+
+
         self.chain.setjoints(self.q)
-
         self.cumulative_qdot += np.abs(qdot)
 
         print(self.cumulative_qdot)
         print(np.mean(self.cumulative_qdot))
 
+        print(self.q)
+        
         return (self.q.flatten().tolist(), qdot.flatten().tolist())
 
 

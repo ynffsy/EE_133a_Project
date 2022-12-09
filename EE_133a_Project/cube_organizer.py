@@ -48,6 +48,7 @@ class CubeOrganizer():
         self.v = v
         self.l = l
         self.node = node
+        self.tolerance = np.abs(1 / v / 2)
 
         ## Compute all initial positions and initialize markers
         self.p0s = np.zeros((self.n_cubes, 3))
@@ -62,7 +63,7 @@ class CubeOrganizer():
             ## x and z positions stay constant
             x0 = slice_pos[0]
             z0 = slice_pos[2]
-            y0 = slice_pos[1] - self.v * self.arrival_times[i]
+            y0 = slice_pos[1] - self.v * (self.arrival_times[i] + self.tolerance)
 
             ## Given arrival times and slice position, we can calculate the initial y position
             self.p0s[i, 0] = x0

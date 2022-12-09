@@ -107,6 +107,27 @@
 
   <link name="tip"/>
 
+  <!-- all joints after this point add degrees of freedom to the task space and aren't actual robot joints -->
+
+  <joint name="blade-length" type="prismatic">
+    <parent link="tip"/>
+    <child  link="tip-sliding"/>
+    <axis   xyz="0 1 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <!-- I don't think we care about effort. We don't actually want to limit its velocity since it's not a real joint -->
+    <limit  lower="-0.5" upper="0.5" effort="1.0" velocity="1000000"/>
+  </joint>
+  
+  <link name="tip-sliding"/>
+
+  <joint name="blade-roll" type="continuous">
+    <parent link="tip-sliding"/>
+    <child  link="tip-sliding-roll"/>
+    <axis   xyz="0 1 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <link name="tip-sliding-roll"/>
 
   <!-- *************************************************** -->
   <!-- ******************* RVIZ Colors ******************* -->
@@ -568,6 +589,170 @@
     </visual>
   </link>
 
+  <!-- Virtual joint visualizations -->
+
+  <joint name="attach-vjoint" type="fixed">
+    <parent link="tip-sliding-roll"/>
+    <child  link="vjoint"/>
+  </joint>
+  <link name="vjoint">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+	      <cylinder length="0.2" radius="0.03"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+  </link>
+  
+
+
+  <!-- *** Targets *** -->
+
+  <!-- <joint name="attach-target1" type="fixed">
+    <parent link="world"/>
+    <child  link="target1"/>
+    <origin xyz="-0.75 0.75 0.25" rpy="0 0 0"/>
+  </joint>
+  <link name="target1">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link>
+
+
+  <joint name="attach-target2" type="fixed">
+    <parent link="world"/>
+    <child  link="target2"/>
+    <origin xyz="-0.25 0.75 0.25" rpy="0 0 0"/>
+  </joint>
+  <link name="target2">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link>
+
+
+  <joint name="attach-target3" type="fixed">
+    <parent link="world"/>
+    <child  link="target3"/>
+    <origin xyz="0.25 0.75 0.25" rpy="0 0 0"/>
+  </joint>
+  <link name="target3">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link>
+
+
+  <joint name="attach-target4" type="fixed">
+    <parent link="world"/>
+    <child  link="target4"/>
+    <origin xyz="0.75 0.75 0.25" rpy="0 0 0"/>
+  </joint>
+  <link name="target4">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link>
+
+
+  <joint name="attach-target5" type="fixed">
+    <parent link="world"/>
+    <child  link="target5"/>
+    <origin xyz="-0.75 0.75 0.75" rpy="0 0 0"/>
+  </joint>
+  <link name="target5">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link>
+
+
+  <joint name="attach-target6" type="fixed">
+    <parent link="world"/>
+    <child  link="target6"/>
+    <origin xyz="-0.25 0.75 0.75" rpy="0 0 0"/>
+  </joint>
+  <link name="target6">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link>
+
+
+  <joint name="attach-target7" type="fixed">
+    <parent link="world"/>
+    <child  link="target7"/>
+    <origin xyz="0.25 0.75 0.75" rpy="0 0 0"/>
+  </joint>
+  <link name="target7">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link>
+
+
+  <joint name="attach-target8" type="fixed">
+    <parent link="world"/>
+    <child  link="target8"/>
+    <origin xyz="0.75 0.75 0.75" rpy="0 0 0"/>
+  </joint>
+  <link name="target8">
+    <visual>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin          xyz="0 0 0" rpy="0 0 0"/>
+      <geometry> <box size="0.2 0.2 0.2"/> </geometry>
+    </collision>
+  </link> -->
+
+
   <!-- *************************************************** -->
   <!-- ******************* Gazebo Colors ***************** -->
   <!-- *************************************************** -->
@@ -589,5 +774,15 @@
 
   <gazebo reference="handbase"> <material>Gazebo/Gray</material> </gazebo>
   <gazebo reference="saber">    <material>Gazebo/Blue</material> </gazebo>
+
+  <!-- <gazebo reference="target1">    <material>Gazebo/Orange</material>  </gazebo>
+  <gazebo reference="target2">    <material>Gazebo/Orange</material>  </gazebo>
+  <gazebo reference="target3">    <material>Gazebo/Orange</material>  </gazebo>
+  <gazebo reference="target4">    <material>Gazebo/Orange</material>  </gazebo>
+  <gazebo reference="target5">    <material>Gazebo/Orange</material>  </gazebo>
+  <gazebo reference="target6">    <material>Gazebo/Orange</material>  </gazebo>
+  <gazebo reference="target7">    <material>Gazebo/Orange</material>  </gazebo>
+  <gazebo reference="target8">    <material>Gazebo/Orange</material>  </gazebo> -->
+
 
 </robot>
