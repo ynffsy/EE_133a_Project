@@ -14,14 +14,18 @@ from EE_133a_Project.cube_organizer import CubeOrganizer
 
 ## Convert cube_pos_type number to the center of cube position
 pos_type_to_position = {
-    1: [-0.75, 0.75, 0.25],
-    2: [-0.25, 0.75, 0.25],
-    3: [0.25,  0.75, 0.25],
-    4: [0.75,  0.75, 0.25],
-    5: [-0.75, 0.75, 0.75],
-    6: [-0.25, 0.75, 0.75],
-    7: [0.25,  0.75, 0.75],
-    8: [0.75,  0.75, 0.75]
+    1:  [-0.6, 0.75, 0.3],
+    2:  [-0.2, 0.75, 0.3],
+    3:  [0.2,  0.75, 0.3],
+    4:  [0.6,  0.75, 0.3],
+    5:  [-0.6, 0.75, 0.7],
+    6:  [-0.2, 0.75, 0.7],
+    7:  [0.2,  0.75, 0.7],
+    8:  [0.6,  0.75, 0.7],
+    9:  [-0.6, 0.75, 1.1],
+    10: [-0.2, 0.75, 1.1],
+    11: [0.2,  0.75, 1.1],
+    12: [0.6,  0.75, 1.1]
 }
 
 
@@ -31,11 +35,10 @@ def spline(t, T, p0, pf):
     return (p, v)
 
 
-def compute_pre_post_slice_poses(cube_pos_type, cube_dir_type):
+def compute_pre_post_slice_poses(cube_pos_type, cube_dir_type, cube_length):
     ## Decide pre_slice_pos and post_slice_pos based on cube_pos_type and cube_dir_type
 
     cube_pos = np.array(pos_type_to_position[cube_pos_type]).reshape(3, 1)
-    cube_length = 0.25
 
     ## Convert cube_dir_type to the relative start position of a slice
     dir_type_to_slice_start_pos = {
@@ -92,6 +95,11 @@ def compute_inter_slice_w(slice1_perp_axis, slice2_perp_axis, cur_cycle_time, ex
     when we suddenly switch
     '''
     
+    # if the dot product is < 0, then the two axes are >90deg apart, so just flip
+    # the second one to fix this
+    if np.dot(slice1_perp_axis.T, slice2_perp_axis)[0,0] < 0:
+    	slice2_perp_axis = -slice2_perp_axis
+    	
     # find axis to rotate from one to the other, and angle to rotate through
     rot_axis = cross(slice1_perp_axis, slice2_perp_axis)
     
@@ -129,9 +137,9 @@ class Trajectory():
         self.chain.setjoints(self.q)
         self.lam = 5
         self.lam2 = 10
-        self.lam3 = 10
         self.gamma = 0.1
         self.cumulative_qdot = np.zeros((9, 1))
+        self.max_qdot = -1
 
         self.init = True               ## Tracking if have performed one slice or not
 
@@ -142,21 +150,54 @@ class Trajectory():
 
         ## Info of all incoming cubes. Each cube is defined by a position type, direction type, and arrival time
         ## Arrival time is defined as the time of the cube arriving at the position that the robot should initiate a slice
+        # self.cubes = np.array([         
+        #     [1, 1, 2, 0],                  
+        #     [2, 2, 4, 1],
+        #     [3, 3, 6, 0], 
+        #     [4, 4, 8, 1],
+        #     [5, 5, 10, 0],
+        #     [6, 6, 12, 1],
+        #     [7, 7, 14, 0],
+        #     [8, 8, 16, 1],
+        #     [9, 1, 18, 0],
+        #     [10, 2, 20, 1],
+        #     [11, 3, 22, 0],
+        #     [12, 4, 24, 1]])    
+
+
+        # self.cubes = np.array([
+        #     [1, 1, 5, 0],                  
+        #     [2, 2, 5, 1],
+        #     [3, 3, 5, 0], 
+        #     [4, 4, 5, 1],
+        #     [5, 5, 5, 0],
+        #     [6, 6, 5, 1],
+        #     [7, 7, 5, 0],
+        #     [8, 8, 5, 1],
+        #     [9, 1, 5, 0],
+        #     [10, 2, 5, 1],
+        #     [11, 3, 5, 0],
+        #     [12, 4, 5, 1]])      
+
         self.cubes = np.array([         
-            [1, 1, 2, 0],                  
-            [2, 2, 4, 1],
-            [3, 3, 6, 0], 
-            [4, 4, 8, 1],
-            [5, 5, 10, 0],
-            [6, 6, 12, 1],
-            [7, 7, 14, 0],
-            [8, 8, 16, 1]])            
+            [1, 1, 11, 0],                  
+            [2, 2, 12, 0],
+            [3, 3, 13, 0], 
+            [4, 4, 14, 0],
+            [5, 5, 15, 0],
+            [6, 6, 16, 0],
+            [7, 7, 17, 0],
+            [8, 8, 18, 0],
+            [9, 1, 19, 0],
+            [10, 2, 20, 0],
+            [11, 3, 21, 0],
+            [12, 4, 22, 0]])  
 
         self.last_post_slice_pos = np.zeros((3, 1))  ## The last finishing position of the robot
 
         ## For cube visualization
         self.v = -2
-        self.l = 0.2
+        self.l = 0.3
         self.cube_organizer = CubeOrganizer(self.cubes, self.v, self.l, node)
 
         quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL,
@@ -215,7 +256,7 @@ class Trajectory():
 
 
         ## Calculate pre slice and post slice positions based on the next cube's type
-        pre_slice_pos, post_slice_pos = compute_pre_post_slice_poses(cube_pos_type, cube_dir_type)
+        pre_slice_pos, post_slice_pos = compute_pre_post_slice_poses(cube_pos_type, cube_dir_type, self.l)
         # self.last_post_slice_pos = post_slice_pos
 
         ## Decide whether we are in slicing motion or pre-slice motion
@@ -232,7 +273,6 @@ class Trajectory():
                 slice_perp_axis = compute_slice_perp_axis(pre_slice_pos, post_slice_pos)
                 wd = np.zeros((3,1))
             else:
-                print(min(cube_arrival_time - self.start_time, self.inter_slice_duration))
                 pd, vd = compute_inter_slice_path(
                     self.p, 
                     pre_slice_pos, 
@@ -271,8 +311,14 @@ class Trajectory():
         # this one is 1|R_0 which we need to go from frame 0 to 1
         task_R_frame_10 = task_R_frame_01.T
 
+        tip_z = self.chain.Rtip()[:,2:3]
+        # if the dot product is < 0, we're more than 90deg off, which means it'll
+        # be easier to push towards the negative of the perpendicular axis
+        # (it doesn't actually matter since we just care that it's parallel)
+        if np.dot(tip_z.T, slice_perp_axis)[0,0] < 0:
+            slice_perp_axis = -slice_perp_axis
         # find rotation error with cross product of tip z and our new z axis
-        Rerr = cross(self.chain.Rtip()[:,2:3], slice_perp_axis)
+        Rerr = cross(tip_z, slice_perp_axis)
 
         # add it to desired w and then transform into new frame
         new_w = wd + self.lam * Rerr
@@ -323,27 +369,24 @@ class Trajectory():
             # fit blade slider motion in the limits
             secondary_qdot = W @ Jw.T @ np.linalg.inv(Jw @ W @ Jw.T) @ secondary_w
             # also push the blade slider towards the middle so we tend to slice using the middle of the blade
-            secondary_qdot = secondary_qdot + self.lam3 * np.array([0,0,0,0,0,0,0,-self.q[7,0],0]).reshape((-1,1))
+            secondary_qdot = secondary_qdot + self.lam2 * np.array([0,0,0,0,0,0,0,-self.q[7,0],0]).reshape((-1,1))
             
             # find qdot for primary velocity plus secondary task in null space
             qdot = (J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1))
                 + (np.eye(9) - J_weighted_inv @ J) @ secondary_qdot)
             #print(J @ W @ J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1)))
             #print(np.vstack((vd + self.lam * perr, new_w_1)))
-            #    
-            
             
             weight *= 2
 
-        print(qdot)
 
         self.q += dt * qdot
         self.chain.setjoints(self.q)
 
         self.cumulative_qdot += np.abs(qdot)
-
+        self.max_qdot = max(self.max_qdot, np.max(np.abs(qdot[:7])))
         print(self.cumulative_qdot)
-        print(np.mean(self.cumulative_qdot))
+        print(np.mean(self.cumulative_qdot[:7]), ' ', self.max_qdot)
 
         return (self.q.flatten().tolist(), qdot.flatten().tolist())
 

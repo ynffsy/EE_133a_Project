@@ -99,13 +99,66 @@
 
   <link name="wrist"/>
 
-  <joint name="final" type="fixed">
+  <joint name="final-left" type="fixed">
     <parent link="link7"/>
-    <child  link="tip"/>
-    <origin xyz="0 0.5 0" rpy="0 0 0"/>
+    <child  link="tip-left"/>
+    <origin xyz="-0.5 0.1 0" rpy="0 0 0"/>
   </joint>
 
-  <link name="tip"/>
+  <link name="tip-left"/>
+
+  <!-- <joint name="final-right" type="fixed">
+    <parent link="link7"/>
+    <child  link="tip-right"/>
+    <origin xyz="0.5 0.1 0" rpy="0 0 0"/>
+  </joint>
+
+  <link name="tip-right"/> -->
+
+  <!-- all joints after this point add degrees of freedom to the task space and aren't actual robot joints -->
+
+  <joint name="blade-length-left" type="prismatic">
+    <parent link="tip-left"/>
+    <child  link="tip-sliding-left"/>
+    <axis   xyz="1 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <limit  lower="-0.5" upper="0.5" effort="1.0" velocity="1000000"/>
+  </joint>
+  
+  <link name="tip-sliding-left"/>
+
+  <joint name="blade-roll-left" type="continuous">
+    <parent link="tip-sliding-left"/>
+    <child  link="tip-sliding-roll-left"/>
+    <axis   xyz="1 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <link name="tip-sliding-roll-left"/>
+
+  <joint name="blade-length-right" type="prismatic">
+    <parent link="tip-sliding-roll-left"/>
+    <child  link="tip-sliding-right"/>
+    <axis   xyz="1 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <limit  lower="-0.5" upper="0.5" effort="1.0" velocity="1000000"/>
+  </joint>
+  
+  <link name="tip-sliding-right"/>
+
+  <joint name="blade-roll-right" type="continuous">
+    <parent link="tip-sliding-right"/>
+    <child  link="tip-sliding-roll-right"/>
+    <axis   xyz="1 0 0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  
+  <link name="tip-sliding-roll-right"/>
+
+
+  
+
+
 
 
   <!-- *************************************************** -->
@@ -579,26 +632,12 @@
   <!-- Lightsaber visualizations  -->
 
   <joint name="attach-saber-left" type="fixed">
-    <parent link="tip"/>
+    <parent link="tip-left"/>
     <child  link="saber-left"/>
   </joint>
   <link name="saber-left">
     <visual>
-      <origin xyz="-0.5 -0.4 0" rpy="0 1.57 0"/>
-      <geometry>
-	      <cylinder length="1.0" radius="0.01"/>
-      </geometry>
-      <material name="red"/>
-    </visual>
-  </link>
-
-  <joint name="attach-saber-right" type="fixed">
-    <parent link="tip"/>
-    <child  link="saber-right"/>
-  </joint>
-  <link name="saber-right">
-    <visual>
-      <origin xyz="0.5 -0.4 0" rpy="0 1.57 0"/>
+      <origin xyz="0 0 0" rpy="0 1.57 0"/>
       <geometry>
 	      <cylinder length="1.0" radius="0.01"/>
       </geometry>
@@ -606,8 +645,20 @@
     </visual>
   </link>
 
+  <joint name="attach-saber-right" type="fixed">
+    <parent link="tip-left"/>
+    <child  link="saber-right"/>
+  </joint>
+  <link name="saber-right">
+    <visual>
+      <origin xyz="1 0 0" rpy="0 1.57 0"/>
+      <geometry>
+	      <cylinder length="1.0" radius="0.01"/>
+      </geometry>
+      <material name="right"/>
+    </visual>
+  </link>
 
-  <!-- *** Targets *** -->
 
 
   <!-- *************************************************** -->
@@ -634,5 +685,6 @@
 
   <gazebo reference="saber-left"> <material>Gazebo/Red</material>     </gazebo>
   <gazebo reference="saber-right"> <material>Gazebo/Blue</material>     </gazebo>
+
 
 </robot>

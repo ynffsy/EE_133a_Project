@@ -129,80 +129,86 @@ class Trajectory():
         ## Info of all incoming cubes. Each cube is defined by a position type, direction type, and arrival time
         ## Arrival time is defined as the time of the cube arriving at the position that the robot should initiate a slice
         self.cubes = np.array([         
-            [6, 2, 3],                  
-            [3, 1, 8],
-            [5, 8, 10], 
-            [4, 7, 15],
-            [1, 5, 18],
-            [8, 4, 20]])            
+            [1, 1, 11],                  
+            [2, 2, 12],
+            [3, 3, 13], 
+            [4, 4, 14],
+            [5, 5, 15],
+            [6, 6, 16],
+            [7, 7, 17],
+            [8, 8, 18],
+            [1, 1, 19],
+            [2, 2, 20],
+            [3, 3, 21],
+            [4, 4, 22]])    
 
         self.last_post_slice_pos = np.zeros((3, 1))  ## The last finishing position of the robot
 
         
 
-        ## For cube visualization
-        self.n_cubes       = self.cubes.shape[0]
-        self.pos_types     = self.cubes[:, 0:1]
-        self.dir_types     = self.cubes[:, 1:2]
-        self.arrival_times = self.cubes[:, 2:3]
+    #     ## For cube visualization
+    #     self.n_cubes       = self.cubes.shape[0]
+    #     self.pos_types     = self.cubes[:, 0:1]
+    #     self.dir_types     = self.cubes[:, 1:2]
+    #     self.arrival_times = self.cubes[:, 2:3]
 
-        self.v = -1
-        self.l = 0.2
+    #     self.v = -1
+    #     self.l = 0.2
 
-        ## Compute all initial positions and initialize markers
-        self.p0s = np.zeros((self.n_cubes, 3))
-        self.cube_markers = []
+    #     ## Compute all initial positions and initialize markers
+    #     self.p0s = np.zeros((self.n_cubes, 3))
+    #     self.cube_markers = []
 
-        for i in range(self.n_cubes):
-            slice_pos = pos_type_to_position[self.pos_types[i, 0]]
+    #     for i in range(self.n_cubes):
+    #         slice_pos = pos_type_to_position[self.pos_types[i, 0]]
 
-            ## x and z positions stay constant
-            x0 = slice_pos[0]
-            z0 = slice_pos[2]
-            y0 = slice_pos[1] + 0.5 - self.v * self.arrival_times[i]
+    #         ## x and z positions stay constant
+    #         x0 = slice_pos[0]
+    #         z0 = slice_pos[2]
+    #         y0 = slice_pos[1] + 0.5 - self.v * self.arrival_times[i]
 
-            ## Given arrival times and slice position, we can calculate the initial y position
-            self.p0s[i, 0] = x0
-            self.p0s[i, 1] = y0
-            self.p0s[i, 2] = z0
+    #         ## Given arrival times and slice position, we can calculate the initial y position
+    #         self.p0s[i, 0] = x0
+    #         self.p0s[i, 1] = y0
+    #         self.p0s[i, 2] = z0
 
-            self.cube_markers.append(cube_marker(x0, y0, z0, self.l))           
+    #         self.cube_markers.append(cube_marker(x0, y0, z0, self.l))           
 
 
-        timestamp = node.get_clock().now().to_msg()
+    #     timestamp = node.get_clock().now().to_msg()
 
-        for (i,marker) in enumerate(self.cube_markers):
-            marker.header.stamp       = timestamp
-            marker.header.frame_id    = 'world'
-            marker.ns                 = 'cube'
-            marker.action             = Marker.ADD
-            marker.id                 = i
+    #     for (i,marker) in enumerate(self.cube_markers):
+    #         marker.header.stamp       = timestamp
+    #         marker.header.frame_id    = 'world'
+    #         marker.ns                 = 'cube'
+    #         marker.action             = Marker.ADD
+    #         marker.id                 = i
 
-        self.marker_array = MarkerArray()
-        self.marker_array.markers = self.cube_markers
+    #     self.marker_array = MarkerArray()
+    #     self.marker_array.markers = self.cube_markers
 
-        quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL,
-                             depth=1)
-        self.pub = node.create_publisher(
-            MarkerArray, '/visualization_marker_array', quality)
+    #     quality = QoSProfile(durability=DurabilityPolicy.TRANSIENT_LOCAL,
+    #                          depth=1)
+    #     self.pub = node.create_publisher(
+    #         MarkerArray, '/visualization_marker_array', quality)
 
-        # Create a timer to keep calculating/sending commands.
-        self.timer = node.create_timer(1/float(100), self.update)
-        self.dt    = self.timer.timer_period_ns * 1e-9
-        self.t     = 0.0
+    #     # Create a timer to keep calculating/sending commands.
+    #     self.timer = node.create_timer(1/float(100), self.update)
+    #     self.dt    = self.timer.timer_period_ns * 1e-9
+    #     self.t     = 0.0
         
 
         
 
-        # self.pub.publish(self.marker_array)
+    #     # self.pub.publish(self.marker_array)
 
 
-    def update(self):
+    # def update(self):
 
-        for i in range(self.n_cubes):
-            self.cube_markers[i].pose.position.y += self.v * self.dt
+    #     for i in range(self.n_cubes):
+    #         self.cube_markers[i].pose.position.y += self.v * self.dt
 
-        self.pub.publish(self.marker_array)
+    #     self.pub.publish(self.marker_array)
 
 
 

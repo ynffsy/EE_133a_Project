@@ -14,14 +14,18 @@ from EE_133a_Project.cube_organizer import CubeOrganizer
 
 ## Convert cube_pos_type number to the center of cube position
 pos_type_to_position = {
-    1: [-0.75, 0.75, 0.25],
-    2: [-0.25, 0.75, 0.25],
-    3: [0.25,  0.75, 0.25],
-    4: [0.75,  0.75, 0.25],
-    5: [-0.75, 0.75, 0.75],
-    6: [-0.25, 0.75, 0.75],
-    7: [0.25,  0.75, 0.75],
-    8: [0.75,  0.75, 0.75]
+    1:  [-0.6, 0.75, 0.3],
+    2:  [-0.2, 0.75, 0.3],
+    3:  [0.2,  0.75, 0.3],
+    4:  [0.6,  0.75, 0.3],
+    5:  [-0.6, 0.75, 0.7],
+    6:  [-0.2, 0.75, 0.7],
+    7:  [0.2,  0.75, 0.7],
+    8:  [0.6,  0.75, 0.7],
+    9:  [-0.6, 0.75, 1.1],
+    10: [-0.2, 0.75, 1.1],
+    11: [0.2,  0.75, 1.1],
+    12: [0.6,  0.75, 1.1]
 }
 
 
@@ -86,6 +90,36 @@ def compute_slice_perp_axis(pre_slice_pos, post_slice_pos):
     return slice_perp_axis
 
 
+# def compute_inter_slice_w(slice1_perp_axis, slice2_perp_axis, cur_cycle_time, execution_time):
+#     '''
+#     Interpolate between perpendicular axis for each slice so the robot doesn't freak out
+#     when we suddenly switch
+#     '''
+    
+#     # if the dot product is < 0, then the two axes are >90deg apart, so just flip
+#     # the second one to fix this
+#     if np.dot(slice1_perp_axis.T, slice2_perp_axis)[0,0] < 0:
+#     	slice2_perp_axis = -slice2_perp_axis
+    	
+#     # find axis to rotate from one to the other, and angle to rotate through
+#     rot_axis = cross(slice1_perp_axis, slice2_perp_axis)
+    
+#     # if they're parallel the cross product won't work and we should just stay at the same
+#     # value the whole time
+#     if np.linalg.norm(rot_axis) == 0:
+#         return slice1_perp_axis, np.zeros((3,1))
+    
+#     rot_angle = np.arcsin(np.linalg.norm(rot_axis))
+#     rot_axis /= np.linalg.norm(rot_axis)
+    
+#     # now we can spline between the two
+#     (sp, spdot) = spline(cur_cycle_time, execution_time, 0, 1)
+#     intermed_axis = Rote(rot_axis, sp * rot_angle) @ slice1_perp_axis
+#     wd = rot_angle * spdot * rot_axis
+    
+#     return intermed_axis, wd
+
+
 def compute_inter_slice_w(slice1_perp_axis, slice2_perp_axis, cur_cycle_time, execution_time):
     '''
     Interpolate between perpendicular axis for each slice so the robot doesn't freak out
@@ -111,7 +145,6 @@ def compute_inter_slice_w(slice1_perp_axis, slice2_perp_axis, cur_cycle_time, ex
     return intermed_axis, wd
 
 
-
 class Trajectory():
     # Initialization.
     def __init__(self, node):
@@ -128,10 +161,9 @@ class Trajectory():
         # the perpendicular axis for the previous slice, can init arbitrarily to z axis
         self.prev_slice_perp_axis = ez() 
         self.chain.setjoints(self.q)
-        self.lam = 5
+        self.lam = 10
         self.lam2 = 10
-        self.lam3 = 10
-        self.gamma = 0.1
+        self.gamma = 0.01
         self.cumulative_qdot = np.zeros((11, 1))
 
         self.init = True               ## Tracking if have performed one slice or not
@@ -142,16 +174,45 @@ class Trajectory():
         self.cube_idx = 0              ## The index of the cube that we are going to slice next
 
         ## Info of all incoming cubes. Each cube is defined by a position type, direction type, and arrival time
-        ## Arrival time is defined as the time of the cube arriving at the position that the robot should initiate a slice
+        ## Arrival time is defined as the time of the cube arriving at the position that the robot should initiate a slice 
+
+        # self.cubes = np.array([         
+        #     [1, 1, 2, 0],                  
+        #     [2, 2, 4, 1],
+        #     [3, 3, 6, 0], 
+        #     [4, 4, 8, 1],
+        #     [5, 5, 10, 0],
+        #     [6, 6, 12, 1],
+        #     [7, 7, 14, 0],
+        #     [8, 8, 16, 1]])        
+
+        # self.cubes = np.array([         
+        #     [1, 1, 2, 0],                  
+        #     [2, 2, 4, 1],
+        #     [3, 3, 6, 0], 
+        #     [4, 4, 8, 1],
+        #     [5, 5, 10, 0],
+        #     [6, 6, 12, 1],
+        #     [7, 7, 14, 0],
+        #     [8, 8, 16, 1],
+        #     [9, 1, 18, 0],
+        #     [10, 2, 20, 1],
+        #     [11, 3, 22, 0],
+        #     [12, 4, 24, 1]])  
+
         self.cubes = np.array([         
-            [1, 1, 2, 0],                  
-            [2, 2, 4, 1],
-            [3, 3, 6, 0], 
-            [4, 4, 8, 1],
-            [5, 5, 10, 0],
-            [6, 6, 12, 1],
-            [7, 7, 14, 0],
-            [8, 8, 16, 1]])            
+            [1, 1, 11, 0],                  
+            [2, 2, 13, 1],
+            [3, 3, 15, 0], 
+            [4, 4, 17, 1],
+            [5, 5, 19, 0],
+            [6, 6, 21, 1],
+            [7, 7, 23, 0],
+            [8, 8, 25, 1],
+            [9, 1, 27, 0],
+            [10, 2, 29, 1],
+            [11, 3, 31, 0],
+            [12, 4, 33, 1]])         
 
         self.last_post_slice_pos = np.zeros((3, 1))  ## The last finishing position of the robot
 
@@ -302,7 +363,15 @@ class Trajectory():
         # this one is 1|R_0 which we need to go from frame 0 to 1
         task_R_frame_10 = task_R_frame_01.T
 
-        # find rotation error with cross product of tip z and our new z axis
+
+        # tip_z = self.chain.Rtip()[:,2:3]
+        # # if the dot product is < 0, we're more than 90deg off, which means it'll
+        # # be easier to push towards the negative of the perpendicular axis
+        # # (it doesn't actually matter since we just care that it's parallel)
+        # if np.dot(tip_z.T, slice_perp_axis)[0,0] < 0:
+        #     slice_perp_axis = -slice_perp_axis
+        # # find rotation error with cross product of tip z and our new z axis
+        # Rerr = cross(tip_z, slice_perp_axis)
         Rerr = cross(Rtip[:,2:3], slice_perp_axis)
 
         # add it to desired w and then transform into new frame
@@ -321,6 +390,8 @@ class Trajectory():
 
         # qdot = J_pinv @ (xdot + self.lam * err)
 
+
+
         
         #J_weighted_inv = np.linalg.inv(J.T @ J + self.gamma**2 * np.eye(9)) @ J.T
         # find qdot for primary velocity plus secondary task in null space
@@ -338,9 +409,6 @@ class Trajectory():
             W = np.diag(1/np.array([256,256,128,128,1,128,128,weight,1]) ** 2)
             Winv = np.linalg.inv(W)
             J_weighted_inv = W @ J.T @ np.linalg.inv(J @ W @ J.T)
-            print(J)
-            print(W)
-            print(J_weighted_inv)
             
             u, s, vT = np.linalg.svd(J_weighted_inv, full_matrices = False)
             # apply gamma to s values to avoid singularity
@@ -357,7 +425,7 @@ class Trajectory():
             # fit blade slider motion in the limits
             secondary_qdot = W @ Jw.T @ np.linalg.inv(Jw @ W @ Jw.T) @ secondary_w
             # also push the blade slider towards the middle so we tend to slice using the middle of the blade
-            secondary_qdot = secondary_qdot + self.lam3 * np.array([0,0,0,0,0,0,0,-q_trimed[7,0],0]).reshape((-1,1))
+            secondary_qdot = secondary_qdot + self.lam2 * np.array([0,0,0,0,0,0,0,-q_trimed[7,0],0]).reshape((-1,1))
             
             # find qdot for primary velocity plus secondary task in null space
             qdot = (J_weighted_inv @ np.vstack((vd + self.lam * perr, new_w_1))
@@ -367,8 +435,11 @@ class Trajectory():
             
             weight *= 2
 
-        if cube_arrival_time > t + 0.5:
-            qdot[4] = 20
+        ## This intentionally spins the blades
+        # if cube_arrival_time > t + 0.5:
+        #     qdot[4] = 10
+        #     qdot[5] = 5
+        #     qdot[6] = 5
 
 
         q_trimed += dt * qdot
@@ -391,8 +462,6 @@ class Trajectory():
 
         print(self.cumulative_qdot)
         print(np.mean(self.cumulative_qdot))
-
-        print(self.q)
         
         return (self.q.flatten().tolist(), qdot.flatten().tolist())
 
